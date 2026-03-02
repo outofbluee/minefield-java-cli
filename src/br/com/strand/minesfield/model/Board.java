@@ -4,8 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Predicate;
 
-import br.com.strand.minesfield.exception.ExplosionException;
-
 public class Board {
 	private int lines;
 	private int columns;
@@ -23,7 +21,6 @@ public class Board {
 		drawMines();
 	}
 	
-	// abrir campos
 	public void openField(int line, int column) {
 		Predicate<Field> findField = f -> f.getLine() == line && f.getColumn() == column;
 		
@@ -32,13 +29,13 @@ public class Board {
 				.filter(findField)
 				.findFirst()
 				.ifPresent(f -> f.open());
-		} catch (ExplosionException e) {
+		} catch (Exception e) {
+			// FIXME Ajustar a implementação do método openField
 			fields.forEach(f -> f.setOpened(true));
 			throw e;
 		}
 	}
 	
-	// marcar campos
 	public void toggleMarkedField(int line, int column) {
 		Predicate<Field> findField = f -> f.getLine() == line && f.getColumn() == column;
 		fields.stream()
@@ -74,51 +71,16 @@ public class Board {
 		} while (armedMines < undermines);
 	}
 	
-	// acabar jogo venceu
 	public boolean goalAchieved() {
 		return fields.stream().allMatch(f -> f.goalAchieved());
 	}
 	
-	// acabar jogo reiniciar
 	public void restart() {
 //		fields.stream().forEach(Field::restart);
 		fields.stream().forEach(f -> f.restart());
 		drawMines();
 	}
 	
-	// acabar jogo perdeu
-	
-	
-	
-	// exibir campos
-	
-	// toString
-	public String toString() {
-		StringBuilder sb = new StringBuilder();
-		int index = 0;
-		
-		sb.append("  ");
-		for (int column = 0; column < columns; column++) {
-			sb.append(" ");
-			sb.append(column);
-			sb.append(" ");
-		}
-		sb.append("\n");
-		
-		for (int line = 0; line < lines; line++) {
-			sb.append(line + " ");
-			for (int column = 0; column < columns; column++) {
-				sb.append(" ");
-				sb.append(fields.get(index));
-				sb.append(" ");
-				index++;
-			}
-			sb.append("\n");
-		}
-		return sb.toString();
-	}
-	
-	// getters e setters
 	public List<Field> getFields() {
 		return fields;
 	}

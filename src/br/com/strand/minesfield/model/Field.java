@@ -4,8 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-import br.com.strand.minesfield.exception.ExplosionException;
-
 public class Field {
 	private boolean opened = false;
 	private boolean undermined = false;
@@ -45,7 +43,7 @@ public class Field {
 			this.opened = true;
 			
 			if(undermined) {
-				throw new ExplosionException();
+				// TODO Implementar nova versão
 			}
 			
 			if(safeNeighborhood()) {
@@ -87,20 +85,6 @@ public class Field {
 		opened = false;
 		undermined = false;
 		marked = false;
-	}
-
-	public String toString() {
-		if(marked) {
-			return "x";
-		} else if(opened && undermined) {
-			return "*";
-		} else if(opened && minesInNeighborhood() > 0) {
-			return Long.toString(minesInNeighborhood());
-		} else if(opened) {
-			return " ";
-		} else {
-			return "?";
-		}
 	}
 
 	@Override
