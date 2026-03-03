@@ -1,15 +1,19 @@
 package br.com.strand.minesfield.model;
 
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
 
-public class Board {
+public class Board implements FieldObserver {
 	private int lines;
 	private int columns;
 	private int undermines;
 	
 	private final List<Field> fields = new ArrayList<>();
+	private final Set<Consumer<ResultEvent>> observers = new LinkedHashSet<>();
 
 	public Board(int lines, int columns, int undermines) {
 		this.lines = lines;
@@ -21,19 +25,17 @@ public class Board {
 		drawMines();
 	}
 	
+	public void addObserver(Consumer<ResultEvent> obsever) {
+		observers.add(obsever);
+	}
+	
 	public void openField(int line, int column) {
 		Predicate<Field> findField = f -> f.getLine() == line && f.getColumn() == column;
 		
-		try {
 			fields.stream()
 				.filter(findField)
 				.findFirst()
 				.ifPresent(f -> f.open());
-		} catch (Exception e) {
-			// FIXME Ajustar a implementação do método openField
-			fields.forEach(f -> f.setOpened(true));
-			throw e;
-		}
 	}
 	
 	public void toggleMarkedField(int line, int column) {
@@ -44,10 +46,16 @@ public class Board {
 			.ifPresent(f -> f.toggleMarked());
 	}
 	
+	private void notifyObservers(boolean result) {
+		observers.stream().forEach(o -> o.accept(new ResultEvent(result)));
+	}
+	
 	private void generateFields() {
 		for (int line = 0; line < lines; line++) {
 			for (int column = 0; column < columns; column++) {
-				fields.add(new Field(line, column));
+				Field field = new Field(line, column);
+				field.addObserver(this);
+				fields.add(field);
 			}
 		}
 	}
@@ -87,5 +95,20 @@ public class Board {
 
 	public int getUndermines() {
 		return undermines;
+	}
+
+	public void eventOccurred(Field field, FieldEvent event) {
+		if (event == FieldEvent.EXPLODE) {
+			showMines();
+			notifyObservers(false);
+		} else if (goalAchieved()) {
+			notifyObservers(true);
+		}
+	}
+	
+	private void showMines() {
+		fields.stream()
+		.filter(c -> c.isUndermined())
+		.forEach(f -> f.setOpened(true));
 	}
 }
